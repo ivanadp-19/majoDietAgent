@@ -18,15 +18,19 @@ DAY_NAMES = [
 
 def _select_meal(
     meals: list[dict],
-    used_counts: Dict[int, int],
+    used_counts: Dict[str, int],
     max_repeats: int = 2,
 ) -> dict | None:
-    for meal in meals:
-        meal_id = meal.get("id")
-        if meal_id is None:
-            continue
-        if used_counts.get(meal_id, 0) < max_repeats:
-            used_counts[meal_id] = used_counts.get(meal_id, 0) + 1
+    def meal_key(item: dict) -> str:
+        name = (item.get("name") or "").strip().lower()
+        meal_type = (item.get("meal_type") or "").strip().lower()
+        return f"{meal_type}:{name}"
+
+    sorted_meals = sorted(meals, key=lambda m: used_counts.get(meal_key(m), 0))
+    for meal in sorted_meals:
+        key = meal_key(meal)
+        if used_counts.get(key, 0) < max_repeats:
+            used_counts[key] = used_counts.get(key, 0) + 1
             return meal
     return None
 
@@ -51,7 +55,7 @@ def generar_plan_semanal(
         "snack": int(calorias_objetivo * 0.10),
     }
 
-    used_counts: Dict[int, int] = {}
+    used_counts: Dict[str, int] = {}
     dias = []
 
     for dia in DAY_NAMES:
