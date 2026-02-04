@@ -25,6 +25,11 @@ def chat(payload: dict) -> StreamingResponse:
     user_id = payload.get("user_id")
     if not session_id:
         session_id = str(uuid4())
+    if not user_id:
+        return StreamingResponse(
+            _event_stream(iter(["event: error\ndata: Missing user_id\n\n"])),
+            media_type="text/event-stream",
+        )
 
     try:
         agent = get_diet_planner()
