@@ -19,7 +19,7 @@ Para CADA comida encontrada, extrae:
 - carbs_g: Carbohidratos estimados en gramos
 - fat_g: Grasa estimada en gramos
 - fiber_g: Fibra estimada en gramos (opcional)
-- ingredients: Lista de ingredientes NORMALIZADOS en espanol
+- ingredients: Lista de ingredientes NORMALIZADOS con cantidad y unidad si se mencionan
 - tags: Etiquetas relevantes en espanol
 - prep_time_mins: Tiempo de preparacion si se menciona (opcional)
 
@@ -66,6 +66,13 @@ Devuelve tu respuesta como JSON con esta estructura:
 {
   "meals": [...],
   "extraction_notes": "Notas sobre suposiciones hechas durante la extraccion"
+}
+
+Cada ingrediente debe tener:
+{
+  "name": "pollo",
+  "quantity": 140,
+  "unit": "g"
 }
 """,
     output_schema=ExtractedMealsResponse,

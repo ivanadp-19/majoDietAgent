@@ -84,11 +84,15 @@ def save_meal(meal: ExtractedMeal, embedding: list[float], source_document: str)
     meal_id = meal_insert.data[0]["id"]
 
     for ingredient in meal.ingredients:
-        ingredient_id = _get_or_create_ingredient(ingredient)
+        ingredient_id = _get_or_create_ingredient(ingredient.name)
+        quantity = ingredient.quantity
+        unit = ingredient.unit
         supabase.table("meal_ingredients").insert(
             {
                 "meal_id": meal_id,
                 "ingredient_id": ingredient_id,
+                "quantity": quantity,
+                "unit": unit,
             }
         ).execute()
 
@@ -99,7 +103,7 @@ def get_meal_by_id(meal_id: int) -> dict | None:
     supabase = get_supabase_client()
     result = (
         supabase.table("meals")
-        .select("*, meal_ingredients(ingredients(canonical_name))")
+        .select("*, meal_ingredients(quantity, unit, ingredients(canonical_name))")
         .eq("id", meal_id)
         .limit(1)
         .execute()
@@ -197,7 +201,7 @@ def search_meals(
 ) -> list[dict]:
     supabase = get_supabase_client()
     query = supabase.table("meals").select(
-        "*, meal_ingredients(ingredients(canonical_name))"
+        "*, meal_ingredients(quantity, unit, ingredients(canonical_name))"
     )
 
     if cursor is not None:

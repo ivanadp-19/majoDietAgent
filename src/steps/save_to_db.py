@@ -15,10 +15,11 @@ openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 def generate_embedding(meal: ExtractedMeal) -> list[float]:
     """Generate embedding for a meal using Spanish text."""
+    ingredient_names = [item.name for item in meal.ingredients]
     embedding_text = (
         f"{meal.name}. {meal.description}\n"
         f"Tipo: {meal.meal_type.value}\n"
-        f"Ingredientes: {', '.join(meal.ingredients)}\n"
+        f"Ingredientes: {', '.join(ingredient_names)}\n"
         f"Etiquetas: {', '.join(meal.tags)}\n"
         f"Calorias: {meal.calories}, Proteina: {meal.protein_g}g, "
         f"Carbohidratos: {meal.carbs_g}g, Grasa: {meal.fat_g}g"
@@ -70,7 +71,7 @@ def save_meals_to_db(step_input: StepInput) -> StepOutput:
                     {
                         "id": meal_id,
                         "name": meal.name,
-                        "ingredients_count": len(meal.ingredients),
+                    "ingredients_count": len(meal.ingredients),
                     }
                 )
             except Exception as exc:

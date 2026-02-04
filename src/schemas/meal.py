@@ -22,7 +22,9 @@ class ExtractedMeal(BaseModel):
     carbs_g: float = Field(..., description="Carbohidratos en gramos")
     fat_g: float = Field(..., description="Grasa en gramos")
     fiber_g: Optional[float] = Field(None, description="Fibra en gramos")
-    ingredients: list[str] = Field(..., description="Lista de ingredientes")
+    ingredients: list["IngredientItem"] = Field(
+        ..., description="Lista de ingredientes con cantidad y unidad"
+    )
     tags: list[str] = Field(
         default_factory=list,
         description="Etiquetas como 'vegano', 'alto-en-proteina'",
@@ -39,3 +41,12 @@ class ExtractedMealsResponse(BaseModel):
     extraction_notes: Optional[str] = Field(
         None, description="Notas sobre la extraccion"
     )
+
+
+class IngredientItem(BaseModel):
+    name: str = Field(..., description="Nombre del ingrediente")
+    quantity: Optional[float] = Field(None, description="Cantidad")
+    unit: Optional[str] = Field(None, description="Unidad")
+
+
+ExtractedMeal.model_rebuild()
