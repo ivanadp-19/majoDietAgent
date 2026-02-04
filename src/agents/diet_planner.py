@@ -1,3 +1,5 @@
+import threading
+
 from agno.agent import Agent
 from agno.db.postgres import PostgresDb
 from agno.models.openai import OpenAIChat
@@ -13,35 +15,44 @@ from src.tools.search_tools import (
 )
 
 _agent: Agent | None = None
+_db: PostgresDb | None = None
+_lock = threading.Lock()
 
 
 def get_diet_planner() -> Agent:
     global _agent
     if _agent is not None:
         return _agent
-    if not SUPABASE_DB_URL:
-        raise RuntimeError(
-            "SUPABASE_DB_URL is missing. Set it to a valid Postgres URL."
-        )
+    with _lock:
+        if _agent is not None:
+            return _agent
+        if not SUPABASE_DB_URL:
+            raise RuntimeError(
+                "SUPABASE_DB_URL is missing. Set it to a valid Postgres URL."
+            )
 
-    _agent = Agent(
-        name="Planificador de Dietas",
-        model=OpenAIChat(id="gpt-5.2"),
-        db=PostgresDb(db_url=SUPABASE_DB_URL),
-        add_history_to_context=True,
-        num_history_runs=3,
-        store_history_messages=True,
-        store_tool_messages=True,
-        tools=[
-            registrar_paciente,
-            buscar_comidas,
-            obtener_detalle_comida,
-            listar_ingredientes_disponibles,
-            contar_comidas_por_tipo,
-            generar_plan_semanal,
-            reemplazar_comida,
-        ],
-        instructions="""
+        global _db
+        if _db is None:
+            _db = PostgresDb(db_url=SUPABASE_DB_URL)
+
+        _agent = Agent(
+            name="Planificador de Dietas",
+            model=OpenAIChat(id="gpt-5.2"),
+            db=_db,
+            add_history_to_context=True,
+            num_history_runs=3,
+            store_history_messages=True,
+            store_tool_messages=True,
+            tools=[
+                registrar_paciente,
+                buscar_comidas,
+                obtener_detalle_comida,
+                listar_ingredientes_disponibles,
+                contar_comidas_por_tipo,
+                generar_plan_semanal,
+                reemplazar_comida,
+            ],
+            instructions="""
 Eres un asistente experto en nutricion que ayuda a nutricionistas a crear planes de alimentacion personalizados.
 
 ## FLUJO DE TRABAJO
@@ -99,6 +110,6 @@ Nivel de actividad:
 - activo
 - muy_activo (tambien acepta: muy_activa, very_active)
 """,
-        markdown=True,
-    )
-    return _agent
+            markdown=True,
+        )
+        return _agent
