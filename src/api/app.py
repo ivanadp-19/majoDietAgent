@@ -21,3 +21,8 @@ app.add_middleware(
 app.include_router(chat_router, prefix="/chat", tags=["chat"])
 app.include_router(ingest_router, prefix="/ingest", tags=["ingest"])
 app.include_router(meals_router, prefix="/meals", tags=["meals"])
+
+
+@app.get("/health")
+def health() -> dict:
+    return {"status": "ok"}
