@@ -107,15 +107,22 @@ def get_meal_by_id(meal_id: int) -> dict | None:
     return result.data[0] if result.data else None
 
 
-def create_meal(meal_data: dict, ingredient_names: list[str]) -> int:
+def create_meal(meal_data: dict, ingredient_entries: list[dict]) -> int:
     supabase = get_supabase_client()
     result = supabase.table("meals").insert(meal_data).execute()
     meal_id = result.data[0]["id"]
 
-    for ingredient in ingredient_names:
-        ingredient_id = _get_or_create_ingredient(ingredient)
+    for ingredient in ingredient_entries:
+        ingredient_id = _get_or_create_ingredient(ingredient["name"])
+        quantity = ingredient.get("quantity")
+        unit = ingredient.get("unit")
         supabase.table("meal_ingredients").insert(
-            {"meal_id": meal_id, "ingredient_id": ingredient_id}
+            {
+                "meal_id": meal_id,
+                "ingredient_id": ingredient_id,
+                "quantity": quantity,
+                "unit": unit,
+            }
         ).execute()
 
     return meal_id
@@ -124,18 +131,25 @@ def create_meal(meal_data: dict, ingredient_names: list[str]) -> int:
 def update_meal(
     meal_id: int,
     meal_data: dict,
-    ingredient_names: list[str] | None = None,
+    ingredient_entries: list[dict] | None = None,
 ) -> None:
     supabase = get_supabase_client()
     if meal_data:
         supabase.table("meals").update(meal_data).eq("id", meal_id).execute()
 
-    if ingredient_names is not None:
+    if ingredient_entries is not None:
         supabase.table("meal_ingredients").delete().eq("meal_id", meal_id).execute()
-        for ingredient in ingredient_names:
-            ingredient_id = _get_or_create_ingredient(ingredient)
+        for ingredient in ingredient_entries:
+            ingredient_id = _get_or_create_ingredient(ingredient["name"])
+            quantity = ingredient.get("quantity")
+            unit = ingredient.get("unit")
             supabase.table("meal_ingredients").insert(
-                {"meal_id": meal_id, "ingredient_id": ingredient_id}
+                {
+                    "meal_id": meal_id,
+                    "ingredient_id": ingredient_id,
+                    "quantity": quantity,
+                    "unit": unit,
+                }
             ).execute()
 
 

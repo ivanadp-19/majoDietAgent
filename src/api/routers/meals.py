@@ -41,8 +41,11 @@ def create_meal_endpoint(
     payload: MealCreate, background_tasks: BackgroundTasks
 ) -> MealResponse:
     meal_data = payload.model_dump(exclude={"ingredients"})
-    ingredient_names = [item.name for item in payload.ingredients]
-    meal_id = create_meal(meal_data, ingredient_names)
+    ingredient_entries = [
+        {"name": item.name, "quantity": item.quantity, "unit": item.unit}
+        for item in payload.ingredients
+    ]
+    meal_id = create_meal(meal_data, ingredient_entries)
     meal = get_meal_by_id(meal_id)
     if not meal:
         raise HTTPException(status_code=500, detail="Meal creation failed")
@@ -181,7 +184,10 @@ def update_meal_endpoint(meal_id: int, payload: MealUpdate) -> MealResponse:
     meal_data = payload.model_dump(exclude_unset=True, exclude={"ingredients"})
     ingredient_names = None
     if payload.ingredients is not None:
-        ingredient_names = [item.name for item in payload.ingredients]
+        ingredient_names = [
+            {"name": item.name, "quantity": item.quantity, "unit": item.unit}
+            for item in payload.ingredients
+        ]
 
     update_meal(meal_id, meal_data, ingredient_names)
     updated = get_meal_by_id(meal_id)

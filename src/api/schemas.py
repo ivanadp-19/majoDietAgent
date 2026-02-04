@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field
 
 class IngredientInput(BaseModel):
     name: str = Field(..., description="Nombre canonico del ingrediente")
+    quantity: Optional[float] = Field(None, description="Cantidad")
+    unit: Optional[str] = Field(None, description="Unidad")
 
 
 class MealCreate(BaseModel):

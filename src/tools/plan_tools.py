@@ -81,7 +81,11 @@ def generar_plan_semanal(
                 continue
 
             ingredients = [
-                mi["ingredients"]["canonical_name"]
+                _format_ingredient(
+                    mi["ingredients"]["canonical_name"],
+                    mi.get("quantity"),
+                    mi.get("unit"),
+                )
                 for mi in selected.get("meal_ingredients", [])
                 if mi.get("ingredients")
             ]
@@ -159,7 +163,11 @@ def reemplazar_comida(
 
     selected = meals[0]
     ingredients = [
-        mi["ingredients"]["canonical_name"]
+        _format_ingredient(
+            mi["ingredients"]["canonical_name"],
+            mi.get("quantity"),
+            mi.get("unit"),
+        )
         for mi in selected.get("meal_ingredients", [])
         if mi.get("ingredients")
     ]
@@ -182,3 +190,11 @@ def reemplazar_comida(
 
     plan["dias"] = days
     return json.dumps(plan, indent=2)
+
+
+def _format_ingredient(name: str, quantity: float | None, unit: str | None) -> str:
+    if quantity is None and not unit:
+        return name
+    if unit:
+        return f"{name} ({quantity} {unit})" if quantity is not None else f"{name} ({unit})"
+    return f"{name} ({quantity})"
